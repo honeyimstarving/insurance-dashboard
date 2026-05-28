@@ -157,10 +157,10 @@ app.post('/api/calls', async (req, res) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          startDate: `${dateFrom}T00:00:00`,
-          endDate:   `${dateTo}T23:59:59`,
-          pageSize: 1000,
-          page: 1,
+          reportStart: `${dateFrom}T00:00:00Z`,
+          reportEnd:   `${dateTo}T23:59:59Z`,
+          size: 1000,
+          offset: 0,
         })
       }
     );
