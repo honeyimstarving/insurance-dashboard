@@ -147,14 +147,21 @@ app.post('/api/calls', async (req, res) => {
       return res.status(400).json({ error: 'Missing Ringba credentials' });
     }
 
-    // Ringba calls report endpoint
+    // Ringba call log endpoint — POST with date filter in body
     const ringbaRes = await fetch(
-      `https://api.ringba.com/v2/${accountId}/calls?startDate=${dateFrom}T00:00:00Z&endDate=${dateTo}T23:59:59Z&pageSize=1000`,
+      `https://api.ringba.com/v2/${accountId}/calllogs`,
       {
+        method: 'POST',
         headers: {
           'Authorization': `Token ${apiKey}`,
           'Content-Type': 'application/json',
-        }
+        },
+        body: JSON.stringify({
+          startDate: `${dateFrom}T00:00:00`,
+          endDate:   `${dateTo}T23:59:59`,
+          pageSize: 1000,
+          page: 1,
+        })
       }
     );
 
@@ -165,17 +172,19 @@ app.post('/api/calls', async (req, res) => {
     }
 
     const data = await ringbaRes.json();
-    const calls = data.callLogs || data.calls || data.data || [];
 
-    const totalCalls = calls.length;
-    const connectedCalls = calls.filter(c =>
-      c.callStatus === 'CONNECTED' ||
-      c.status === 'connected' ||
-      c.duration > 0
-    ).length;
+    // Ringba returns data under callLog.data[]
+    const calls = data?.callLog?.data || data?.calls || data?.data || [];
+
+    const totalCalls = data?.callLog?.totalCount ?? calls.length;
+
+    const connectedCalls = calls.filter(c => {
+      const dur = c.callLengthInSeconds || c.duration || c.callDuration || 0;
+      return dur > 0;
+    }).length;
 
     const durations = calls
-      .map(c => c.duration || c.callDuration || 0)
+      .map(c => c.callLengthInSeconds || c.duration || c.callDuration || 0)
       .filter(d => d > 0);
 
     const avgDurationSec = durations.length > 0
