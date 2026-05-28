@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insurance Marketing Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg2: #111111;
+    --bg3: #181818;
+    --bg4: #1f1f1f;
+    --border: #2a2a2a;
+    --border2: #333;
+    --text: #e8e8e8;
+    --muted: #555;
+    --muted2: #777;
+    --green: #00e676;
+    --green-dim: #003d1a;
+    --green-border: #00a84f;
+    --blue: #29b6f6;
+    --blue-dim: #00253d;
+    --pink: #f06292;
+    --pink-dim: #3d0018;
+    --yellow: #ffca28;
+    --yellow-dim: #3d2e00;
+    --purple: #ce93d8;
+    --purple-dim: #280d30;
+    --red: #ef5350;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --font-sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.5px;
+  }
+
+  .logo-mark {
+    width: 30px;
+    height: 30px;
+    background: var(--red);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .logo span { color: var(--muted2); font-weight: 400; }
+
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+  .timestamp {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .live-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--green);
+    background: var(--green-dim);
+    border: 1px solid var(--green-border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    letter-spacing: 1px;
+  }
+
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .btn:hover { background: var(--bg4); border-color: #444; }
+
+  .btn.green {
+    color: var(--green);
+    border-color: var(--green-border);
+    background: var(--green-dim);
+  }
+
+  .btn.green:hover { background: #005a25; }
+
+  /* ── LAYOUT ── */
+  .container { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
+
+  .date-row {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  /* ── KPI STRIP ── */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    background: var(--bg2);
+  }
+
+  .kpi-item {
+    padding: 16px 18px;
+    border-right: 1px solid var(--border);
+  }
+
+  .kpi-item:last-child { border-right: none; }
+
+  .kpi-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .kpi-val {
+    font-family: var(--font-mono);
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .kpi-val.red { color: var(--red); }
+  .kpi-val.purple { color: var(--purple); }
+  .kpi-val.loading { color: var(--muted); animation: blink 1.2s infinite; }
+
+  @keyframes blink { 0%,100% { opacity:1 } 50% { opacity:0.3 } }
+
+  /* ── SECTION HEADERS ── */
+  .section {
+    margin-bottom: 28px;
+  }
+
+  .section-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 14px;
+  }
+
+  .section-tag.green { color: var(--green); background: var(--green-dim); border: 1px solid var(--green-border); }
+  .section-tag.blue { color: var(--blue); background: var(--blue-dim); border: 1px solid #1565a0; }
+  .section-tag.purple { color: var(--purple); background: var(--purple-dim); border: 1px solid #6a1b9a; }
+
+  .section-tag svg { width: 10px; height: 10px; }
+
+  /* ── DATE FILTER ── */
+  .date-filter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .date-filter-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .date-input {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .date-input:focus { outline: none; border-color: #555; }
+
+  .filter-btn {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--muted2);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--bg4);
+    color: var(--text);
+    border-color: #555;
+  }
+
+  .loading-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--green);
+    animation: blink 1.2s infinite;
+  }
+
+  /* ── STAT CARDS ── */
+  .cards-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .cards-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .cards-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+  .stat-card {
+    background: var(--bg2);
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    transition: border-color 0.2s;
+  }
+
+  .stat-card:hover { border-color: var(--border2); }
+  .stat-card.green { border-color: var(--green-border); }
+  .stat-card.blue { border-color: #1565a0; }
+  .stat-card.pink { border-color: #880e4f; }
+  .stat-card.yellow { border-color: #f57f17; }
+  .stat-card.purple { border-color: #6a1b9a; }
+
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .stat-val {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-val.green { color: var(--green); }
+  .stat-val.blue { color: var(--blue); }
+  .stat-val.pink { color: var(--pink); }
+  .stat-val.yellow { color: var(--yellow); }
+  .stat-val.purple { color: var(--purple); }
+
+  .stat-sub {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  /* ── PTC BAR ── */
+  .ptc-block {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+
+  .ptc-meta {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .ptc-meta strong { color: var(--yellow); }
+
+  .ptc-row { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+
+  .ptc-number {
+    font-family: var(--font-mono);
+    font-size: 40px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .ptc-status {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  .bar-track {
+    background: var(--bg4);
+    height: 8px;
+    border-radius: 4px;
+    position: relative;
+    margin-bottom: 6px;
+  }
+
+  .bar-fill {
+    height: 8px;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+    position: relative;
+  }
+
+  .bar-markers {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--muted);
+  }
+
+  /* ── CAMPAIGN CARDS ── */
+  .camp-card {
+    background: var(--bg2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 16px;
+  }
+
+  .camp-name {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .camp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .camp-metric-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+  }
+
+  .camp-metric-val {
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .camp-metric-val.highlight { color: var(--purple); }
+
+  /* ── DEALS TABLE ── */
+  .deals-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 14px;
+  }
+
+  .deals-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .deals-summary-cell {
+    padding: 12px 16px;
+    border-right: 1px solid var(--border);
+  }
+
+  .deals-summary-cell:last-child { border-right: none; }
+
+  .deals-summary-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .deals-summary-val {
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead th {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg3); }
+
+  tbody td {
+    padding: 10px 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+
+  .badge.ruby { background: var(--pink-dim); color: var(--pink); border: 1px solid #880e4f; }
+  .badge.sapphire { background: var(--blue-dim); color: var(--blue); border: 1px solid #1565a0; }
+  .badge.diamond { background: var(--purple-dim); color: var(--purple); border: 1px solid #6a1b9a; }
+  .badge.health { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); }
+  .badge.auto { background: var(--yellow-dim); color: var(--yellow); border: 1px solid #f57f17; }
+
+  .premium-val { color: var(--green); font-weight: 600; }
+  .muted-val { color: var(--muted2); }
+
+  /* ── STATUS DOTS ── */
+  .campaign-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  .campaign-status-row:last-child { border-bottom: none; }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .status-dot.active { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .status-dot.paused { background: var(--yellow); }
+  .status-dot.removed { background: var(--red); }
+
+  /* ── ERROR / LOADING STATES ── */
+  .error-banner {
+    background: #2d0a0a;
+    border: 1px solid #7f1d1d;
+    color: #fca5a5;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    display: none;
+  }
+
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg3) 25%, var(--bg4) 50%, var(--bg3) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    height: 28px;
+    width: 80px;
+  }
+
+  @keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
+
+  /* ── DIVIDER ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+  /* ── CONFIG PANEL ── */
+  .config-panel {
+    background: var(--bg2);
+    border: 1px solid #f57f17;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: none;
+  }
+
+  .config-panel.open { display: block; }
+
+  .config-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--yellow);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .config-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+  .config-field label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .config-field input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 6px 10px;
+    border-radius: 4px;
+  }
+
+  .config-field input:focus { outline: none; border-color: var(--yellow); }
+
+  .config-note {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 12px;
+    line-height: 1.7;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .kpi-strip { grid-template-columns: repeat(3, 1fr); }
+    .cards-4 { grid-template-columns: repeat(2, 1fr); }
+    .cards-3 { grid-template-columns: 1fr 1fr; }
+    .config-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 600px) {
+    .cards-4, .cards-3, .cards-2 { grid-template-columns: 1fr; }
+    .kpi-strip { grid-template-columns: 1fr 1fr; }
+    .config-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── TOP BAR ── -->
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-mark">INS</div>
+    Marketing Dashboard <span>/ Client Name</span>
+  </div>
+  <div class="topbar-right">
+    <span class="timestamp" id="clock">--:--:--</span>
+    <div class="live-pill"><div class="live-dot"></div> LIVE</div>
+    <button class="btn" onclick="toggleConfig()">⚙ Config</button>
+    <button class="btn green" onclick="refreshAll()">↻ Refresh</button>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- ── CONFIG PANEL ── -->
+  <div class="config-panel" id="configPanel">
+    <div class="config-title">⚙ API Configuration</div>
+    <div class="config-grid">
+      <div class="config-field">
+        <label>Google Ads Customer ID</label>
+        <input type="text" id="cfg-gads-customer" placeholder="123-456-7890" oninput="saveConfig()">
+      </div>
+      <div class="config-field">
+        <label>Google Ads Developer Token</label>
+        <input type="password" id="cfg-gads-token" placeholder="••••••••••••••••" oninput="saveConfig()">
+      </div>
+      <div class="config-field">
+        <label>Google Ads OAuth Token</label>
+        <input type="password" id="cfg-gads-oauth" placeholder="ya29.••••••••" oninput="saveConfig()">
+      </div>
+      <div class="config-field">
+        <label>Ringba Account ID</label>
+        <input type="text" id="cfg-ringba-account" placeholder="XXXXXXXXXX" oninput="saveConfig()">
+      </div>
+      <div class="config-field">
+        <label>Ringba API Key</label>
+        <input type="password" id="cfg-ringba-key" placeholder="••••••••••••••••" oninput="saveConfig()">
+      </div>
+      <div class="config-field">
+        <label>Google Sheets ID</label>
+        <input type="text" id="cfg-sheets-id" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" oninput="saveConfig()">
+      </div>
+      <div class="config-field">
+        <label>Sheets API Key</label>
+        <input type="password" id="cfg-sheets-key" placeholder="AIza••••••••••••" oninput="saveConfig()">
+      </div>
+      <div class="config-field">
+        <label>Sheets Tab Name</label>
+        <input type="text" id="cfg-sheets-tab" placeholder="Sales" oninput="saveConfig()">
+      </div>
+      <div class="config-field">
+        <label>Proxy Base URL (optional)</label>
+        <input type="text" id="cfg-proxy-url" placeholder="https://your-proxy.vercel.app" oninput="saveConfig()">
+      </div>
+    </div>
+    <div class="config-note">
+      ⚠ Credentials saved to localStorage. For production, use a backend proxy to keep API keys off the client.<br>
+      Google Ads API requires a proxy (CORS restriction). Sheets API with public sheet works directly. Ringba API requires proxy.
+    </div>
+  </div>
+
+  <!-- ── DATE ROW ── -->
+  <div class="date-row" id="todayLabel">TODAY — --</div>
+
+  <!-- ── KPI STRIP ── -->
+  <div class="kpi-strip">
+    <div class="kpi-item">
+      <div class="kpi-label">PTC</div>
+      <div class="kpi-val red" id="kpi-ptc">--</div>
+    </div>
+    <div class="kpi-item">
+      <div class="kpi-label">Ad Spend</div>
+      <div class="kpi-val" id="kpi-spend">--</div>
+    </div>
+    <div class="kpi-item">
+      <div class="kpi-label">Premium</div>
+      <div class="kpi-val purple" id="kpi-premium">--</div>
+    </div>
+    <div class="kpi-item">
+      <div class="kpi-label">CPA</div>
+      <div class="kpi-val" id="kpi-cpa">--</div>
+    </div>
+    <div class="kpi-item">
+      <div class="kpi-label">PPS</div>
+      <div class="kpi-val" id="kpi-pps">--</div>
+    </div>
+  </div>
+
+  <!-- ═══ GOOGLE ADS SECTION ═══ -->
+  <div class="section">
+    <div class="date-filter">
+      <div class="section-tag green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        Google Ads
+      </div>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+        <span class="date-filter-label">From</span>
+        <input type="date" class="date-input" id="ads-from">
+        <span class="date-filter-label">To</span>
+        <input type="date" class="date-input" id="ads-to">
+        <button class="filter-btn active" onclick="setRange('ads','today',this)">Today</button>
+        <button class="filter-btn" onclick="setRange('ads','week',this)">This Week</button>
+        <button class="filter-btn" onclick="setRange('ads','month',this)">This Month</button>
+        <button class="filter-btn" onclick="setRange('ads','all',this)">All Time</button>
+        <span class="loading-label" id="ads-loading" style="display:none">Loading live data...</span>
+      </div>
+    </div>
+
+    <div class="error-banner" id="ads-error">⚠ Google Ads API error — check config or proxy.</div>
+
+    <div class="cards-4" style="margin-bottom: 16px;">
+      <div class="stat-card green">
+        <div class="stat-label">Spend</div>
+        <div class="stat-val green" id="ads-spend">$--</div>
+        <div class="stat-sub" id="ads-spend-sub">Live from Google Ads</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">Clicks</div>
+        <div class="stat-val blue" id="ads-clicks">--</div>
+        <div class="stat-sub" id="ads-cpc-sub">CPC: $--</div>
+      </div>
+      <div class="stat-card pink">
+        <div class="stat-label">Impressions</div>
+        <div class="stat-val pink" id="ads-impressions">--</div>
+        <div class="stat-sub" id="ads-ctr-sub">CTR: --%</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-label">Conversions</div>
+        <div class="stat-val yellow" id="ads-conversions">--</div>
+        <div class="stat-sub" id="ads-costconv-sub">Cost/conv: $--</div>
+      </div>
+    </div>
+
+    <!-- PTC BAR -->
+    <div class="ptc-block">
+      <div class="ptc-meta">
+        #1 METRIC — PREMIUM TO COST (PTC) · TARGET: <strong>0.70</strong> MIN · <strong>0.80</strong> IDEAL · <strong>1.0+</strong> COOKING
+      </div>
+      <div class="ptc-row">
+        <span class="ptc-number" id="ptc-number" style="color: var(--red);">--</span>
+        <span class="ptc-status" id="ptc-status" style="color: var(--red);">LOADING...</span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" id="ptc-bar" style="width: 0%; background: var(--muted);"></div>
+      </div>
+      <div class="bar-markers">
+        <span>0</span><span>0.70</span><span>0.80</span><span>1.0</span><span>1.5</span>
+      </div>
+    </div>
+
+    <!-- Campaign Performance -->
+    <div style="margin-bottom: 10px;">
+      <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted2);">Campaign Performance</span>
+    </div>
+    <div class="cards-3" id="campaign-cards">
+      <div class="camp-card" style="border-color: #1565a0;">
+        <div class="camp-name" style="color: var(--blue);">Sapphire</div>
+        <div class="camp-grid">
+          <div><div class="camp-metric-label">Spend</div><div class="camp-metric-val" id="camp-sap-spend">$--</div></div>
+          <div><div class="camp-metric-label">Sales</div><div class="camp-metric-val" id="camp-sap-sales">--</div></div>
+          <div><div class="camp-metric-label">CPA</div><div class="camp-metric-val" id="camp-sap-cpa">--</div></div>
+          <div><div class="camp-metric-label">Premium</div><div class="camp-metric-val highlight" id="camp-sap-premium">--</div></div>
+          <div><div class="camp-metric-label">PPS</div><div class="camp-metric-val" id="camp-sap-pps">--</div></div>
+          <div><div class="camp-metric-label">PTC</div><div class="camp-metric-val" id="camp-sap-ptc">--</div></div>
+        </div>
+      </div>
+      <div class="camp-card" style="border-color: #6a1b9a;">
+        <div class="camp-name" style="color: var(--purple);">Diamond</div>
+        <div class="camp-grid">
+          <div><div class="camp-metric-label">Spend</div><div class="camp-metric-val" id="camp-dia-spend">$--</div></div>
+          <div><div class="camp-metric-label">Sales</div><div class="camp-metric-val" id="camp-dia-sales">--</div></div>
+          <div><div class="camp-metric-label">CPA</div><div class="camp-metric-val" id="camp-dia-cpa">--</div></div>
+          <div><div class="camp-metric-label">Premium</div><div class="camp-metric-val highlight" id="camp-dia-premium">--</div></div>
+          <div><div class="camp-metric-label">PPS</div><div class="camp-metric-val" id="camp-dia-pps">--</div></div>
+          <div><div class="camp-metric-label">PTC</div><div class="camp-metric-val" id="camp-dia-ptc">--</div></div>
+        </div>
+      </div>
+      <div class="camp-card" style="border-color: #880e4f;">
+        <div class="camp-name" style="color: var(--pink);">Ruby</div>
+        <div class="camp-grid">
+          <div><div class="camp-metric-label">Spend</div><div class="camp-metric-val" id="camp-rub-spend">$--</div></div>
+          <div><div class="camp-metric-label">Sales</div><div class="camp-metric-val" id="camp-rub-sales">--</div></div>
+          <div><div class="camp-metric-label">CPA</div><div class="camp-metric-val" id="camp-rub-cpa">--</div></div>
+          <div><div class="camp-metric-label">Premium</div><div class="camp-metric-val highlight" id="camp-rub-premium">--</div></div>
+          <div><div class="camp-metric-label">PPS</div><div class="camp-metric-val" id="camp-rub-pps">--</div></div>
+          <div><div class="camp-metric-label">PTC</div><div class="camp-metric-val" id="camp-rub-ptc">--</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Campaign Status -->
+    <div style="margin: 16px 0 10px;">
+      <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted2);">Campaign Status — Live from Google Ads</span>
+    </div>
+    <div class="deals-wrap" id="campaign-status-list">
+      <div class="campaign-status-row">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="status-dot active"></div>
+          <span>New Ruby</span>
+        </div>
+        <span style="color:var(--muted)">Loading...</span>
+        <span style="color:var(--green)">ACTIVE</span>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══ CALL TRACKING SECTION ═══ -->
+  <div class="section">
+    <div class="date-filter">
+      <div class="section-tag blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81 19.79 19.79 0 01.01 6.18 2 2 0 012 4h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 11.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 18v.92z"/></svg>
+        Call Tracking (Ringba / CTM)
+      </div>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+        <span class="date-filter-label">From</span>
+        <input type="date" class="date-input" id="calls-from">
+        <span class="date-filter-label">To</span>
+        <input type="date" class="date-input" id="calls-to">
+        <button class="filter-btn active" onclick="setRange('calls','today',this)">Today</button>
+        <button class="filter-btn" onclick="setRange('calls','week',this)">This Week</button>
+        <button class="filter-btn" onclick="setRange('calls','month',this)">This Month</button>
+        <span class="loading-label" id="calls-loading" style="display:none">Loading live data...</span>
+      </div>
+    </div>
+
+    <div class="error-banner" id="calls-error">⚠ Ringba/CTM API error — check config or proxy.</div>
+
+    <div class="cards-4">
+      <div class="stat-card blue">
+        <div class="stat-label">Total Calls</div>
+        <div class="stat-val blue" id="calls-total">--</div>
+        <div class="stat-sub">via Ringba / CTM</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Connected</div>
+        <div class="stat-val green" id="calls-connected">--</div>
+        <div class="stat-sub" id="calls-connect-rate">--% connect rate</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-label">Avg Duration</div>
+        <div class="stat-val yellow" id="calls-duration">--</div>
+        <div class="stat-sub">min:sec</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-label">Cost / Call</div>
+        <div class="stat-val purple" id="calls-cost-per">$--</div>
+        <div class="stat-sub">Spend ÷ calls</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══ SALES / SHEETS SECTION ═══ -->
+  <div class="section">
+    <div class="date-filter">
+      <div class="section-tag purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Sales — Google Sheets
+      </div>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+        <span class="date-filter-label">From</span>
+        <input type="date" class="date-input" id="sales-from">
+        <span class="date-filter-label">To</span>
+        <input type="date" class="date-input" id="sales-to">
+        <button class="filter-btn active" onclick="setRange('sales','today',this)">Today</button>
+        <button class="filter-btn" onclick="setRange('sales','week',this)">This Week</button>
+        <button class="filter-btn" onclick="setRange('sales','month',this)">This Month</button>
+        <button class="filter-btn" onclick="setRange('sales','all',this)">All</button>
+        <span class="loading-label" id="sales-loading" style="display:none">Loading live data...</span>
+      </div>
+    </div>
+
+    <div class="error-banner" id="sales-error">⚠ Google Sheets error — check Sheet ID, API key, and tab name.</div>
+
+    <div class="cards-2" style="margin-bottom: 14px;">
+      <div class="stat-card purple">
+        <div class="stat-label">Deals Won</div>
+        <div class="stat-val purple" id="sales-deals">--</div>
+        <div class="stat-sub" id="sales-deals-sub">-- deals today · via Sheets</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Revenue</div>
+        <div class="stat-val green" id="sales-revenue">$--</div>
+        <div class="stat-sub" id="sales-month-sub">-- total this month</div>
+      </div>
+    </div>
+
+    <!-- Summary strip -->
+    <div class="deals-wrap" style="margin-bottom: 14px;">
+      <div class="deals-summary">
+        <div class="deals-summary-cell">
+          <div class="deals-summary-label">Total Sales</div>
+          <div class="deals-summary-val" id="sum-total">--</div>
+        </div>
+        <div class="deals-summary-cell">
+          <div class="deals-summary-label">Total Premium</div>
+          <div class="deals-summary-val" id="sum-premium">$--</div>
+        </div>
+        <div class="deals-summary-cell">
+          <div class="deals-summary-label">Sapphire / Diamond / Ruby</div>
+          <div class="deals-summary-val" id="sum-campaign-split">-- / -- / --</div>
+        </div>
+        <div class="deals-summary-cell">
+          <div class="deals-summary-label">Health / Add-On</div>
+          <div class="deals-summary-val" id="sum-type-split">-- / --</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Deals Table -->
+    <div class="deals-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Campaign</th>
+            <th>State</th>
+            <th>Type</th>
+            <th>Premium</th>
+            <th>Date</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody id="deals-tbody">
+          <tr>
+            <td colspan="8" style="text-align:center;color:var(--muted);padding:24px;font-family:var(--font-mono);font-size:11px;">
+              Configure credentials above and click Refresh to load deals
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ══════════════════════════════════════════════
+//  CONFIG — load from localStorage
+// ══════════════════════════════════════════════
+const CFG_KEY = 'ins_dashboard_config';
+
+function loadConfig() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CFG_KEY) || '{}');
+    document.getElementById('cfg-gads-customer').value = saved.gadsCustomer || '';
+    document.getElementById('cfg-gads-token').value = saved.gadsToken || '';
+    document.getElementById('cfg-gads-oauth').value = saved.gadsOAuth || '';
+    document.getElementById('cfg-ringba-account').value = saved.ringbaAccount || '';
+    document.getElementById('cfg-ringba-key').value = saved.ringbaKey || '';
+    document.getElementById('cfg-sheets-id').value = saved.sheetsId || '';
+    document.getElementById('cfg-sheets-key').value = saved.sheetsKey || '';
+    document.getElementById('cfg-sheets-tab').value = saved.sheetsTab || 'Sales';
+    document.getElementById('cfg-proxy-url').value = saved.proxyUrl || '';
+    return saved;
+  } catch(e) { return {}; }
+}
+
+function saveConfig() {
+  const cfg = {
+    gadsCustomer: document.getElementById('cfg-gads-customer').value,
+    gadsToken: document.getElementById('cfg-gads-token').value,
+    gadsOAuth: document.getElementById('cfg-gads-oauth').value,
+    ringbaAccount: document.getElementById('cfg-ringba-account').value,
+    ringbaKey: document.getElementById('cfg-ringba-key').value,
+    sheetsId: document.getElementById('cfg-sheets-id').value,
+    sheetsKey: document.getElementById('cfg-sheets-key').value,
+    sheetsTab: document.getElementById('cfg-sheets-tab').value || 'Sales',
+    proxyUrl: document.getElementById('cfg-proxy-url').value,
+  };
+  localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+  return cfg;
+}
+
+function getConfig() {
+  try { return JSON.parse(localStorage.getItem(CFG_KEY) || '{}'); } catch(e) { return {}; }
+}
+
+function toggleConfig() {
+  document.getElementById('configPanel').classList.toggle('open');
+}
+
+// ══════════════════════════════════════════════
+//  DATE UTILITIES
+// ══════════════════════════════════════════════
+function toYMD(d) {
+  return d.toISOString().slice(0, 10);
+}
+
+function today() { return toYMD(new Date()); }
+
+function weekStart() {
+  const d = new Date();
+  d.setDate(d.getDate() - d.getDay());
+  return toYMD(d);
+}
+
+function monthStart() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;
+}
+
+function setRange(section, range, btn) {
+  const from = document.getElementById(`${section}-from`);
+  const to = document.getElementById(`${section}-to`);
+  const t = today();
+
+  if (range === 'today') { from.value = t; to.value = t; }
+  else if (range === 'week') { from.value = weekStart(); to.value = t; }
+  else if (range === 'month') { from.value = monthStart(); to.value = t; }
+  else if (range === 'all') { from.value = '2020-01-01'; to.value = t; }
+
+  // update active button in this filter row
+  btn.closest('.date-filter').querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if (section === 'ads') fetchAdsData();
+  else if (section === 'calls') fetchCallsData();
+  else if (section === 'sales') fetchSalesData();
+}
+
+function initDates() {
+  const t = today();
+  ['ads','calls','sales'].forEach(s => {
+    document.getElementById(`${s}-from`).value = t;
+    document.getElementById(`${s}-to`).value = t;
+    document.getElementById(`${s}-from`).addEventListener('change', () => {
+      if (s === 'ads') fetchAdsData();
+      else if (s === 'calls') fetchCallsData();
+      else fetchSalesData();
+    });
+    document.getElementById(`${s}-to`).addEventListener('change', () => {
+      if (s === 'ads') fetchAdsData();
+      else if (s === 'calls') fetchCallsData();
+      else fetchSalesData();
+    });
+  });
+}
+
+// ══════════════════════════════════════════════
+//  CLOCK + DATE LABEL
+// ══════════════════════════════════════════════
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toTimeString().slice(0,8);
+  document.getElementById('todayLabel').textContent =
+    'TODAY — ' + now.toLocaleDateString('en-US', { weekday:'long', day:'numeric', month:'long', year:'numeric' }).toUpperCase();
+}
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+function fmt$(n) {
+  if (n === null || n === undefined || isNaN(n)) return '$--';
+  if (n >= 1000) return '$' + (n/1000).toFixed(1) + 'k';
+  return '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function fmtBig$(n) {
+  if (n === null || isNaN(n)) return '$--';
+  return '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function fmtK(n) {
+  if (n === null || isNaN(n)) return '--';
+  if (n >= 1000) return (n/1000).toFixed(1) + 'k';
+  return String(n);
+}
+
+function setEl(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function showLoading(id, show) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = show ? 'inline' : 'none';
+}
+
+function showError(id, show, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = show ? 'block' : 'none';
+  if (msg) el.textContent = '⚠ ' + msg;
+}
+
+// ══════════════════════════════════════════════
+//  GOOGLE ADS API
+//  Requires a proxy — direct browser calls blocked by CORS.
+//  Proxy endpoint: POST /api/google-ads
+//  Returns: { spend, clicks, impressions, conversions, campaigns: [{name, spend, conversions}] }
+// ══════════════════════════════════════════════
+async function fetchAdsData() {
+  const cfg = getConfig();
+  showLoading('ads-loading', true);
+  showError('ads-error', false);
+
+  const from = document.getElementById('ads-from').value;
+  const to = document.getElementById('ads-to').value;
+
+  if (!cfg.gadsCustomer || !cfg.gadsToken) {
+    showLoading('ads-loading', false);
+    // Show placeholder so UI isn't empty
+    renderAdsData({ spend: null, clicks: null, impressions: null, conversions: null, campaigns: [] });
+    return;
+  }
+
+  try {
+    const proxyUrl = (cfg.proxyUrl || '') + '/api/google-ads';
+    const res = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // These go to YOUR proxy, which then forwards to Google Ads API server-side
+        'x-gads-customer-id': cfg.gadsCustomer.replace(/-/g,''),
+        'x-gads-developer-token': cfg.gadsToken,
+        'x-gads-oauth-token': cfg.gadsOAuth,
+      },
+      body: JSON.stringify({ dateFrom: from, dateTo: to })
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderAdsData(data);
+  } catch(err) {
+    showError('ads-error', true, `Google Ads API error: ${err.message}`);
+    console.error('Ads fetch error:', err);
+  } finally {
+    showLoading('ads-loading', false);
+  }
+}
+
+function renderAdsData(data) {
+  const spend = data.spend ?? null;
+  const clicks = data.clicks ?? null;
+  const impr = data.impressions ?? null;
+  const conv = data.conversions ?? null;
+
+  setEl('ads-spend', spend !== null ? fmtBig$(spend) : '$--');
+  setEl('ads-clicks', clicks !== null ? fmtK(clicks) : '--');
+  setEl('ads-impressions', impr !== null ? fmtK(impr) : '--');
+  setEl('ads-conversions', conv !== null ? String(conv) : '--');
+
+  const cpc = (spend && clicks) ? spend / clicks : null;
+  const ctr = (impr && clicks) ? (clicks / impr * 100) : null;
+  const costConv = (spend && conv) ? spend / conv : null;
+
+  setEl('ads-cpc-sub', cpc !== null ? `CPC: ${fmtBig$(cpc)}` : 'CPC: $--');
+  setEl('ads-ctr-sub', ctr !== null ? `CTR: ${ctr.toFixed(2)}%` : 'CTR: --%');
+  setEl('ads-costconv-sub', costConv !== null ? `Cost/conv: ${fmtBig$(costConv)}` : 'Cost/conv: $--');
+
+  setEl('kpi-spend', spend !== null ? fmt$(spend) : '--');
+
+  // Campaign status list
+  if (data.campaigns && data.campaigns.length > 0) {
+    const list = document.getElementById('campaign-status-list');
+    list.innerHTML = data.campaigns.map(c => `
+      <div class="campaign-status-row">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="status-dot ${c.status === 'ENABLED' ? 'active' : c.status === 'PAUSED' ? 'paused' : 'removed'}"></div>
+          <span>${c.name}</span>
+        </div>
+        <span style="color:var(--muted);font-family:var(--font-mono)">${fmtBig$(c.spend || 0)} spend</span>
+        <span style="color:${c.status === 'ENABLED' ? 'var(--green)' : 'var(--muted)'};font-family:var(--font-mono);font-size:10px;letter-spacing:1px;">${c.status}</span>
+      </div>
+    `).join('');
+  }
+
+  updateKpis();
+}
+
+// ══════════════════════════════════════════════
+//  RINGBA / CTM API
+//  Ringba: proxy to https://api.ringba.com/v2/{accountId}/calls
+//  CTM: proxy to https://api.calltrackingmetrics.com/api/v1/accounts/{id}/calls
+//  Returns: { totalCalls, connectedCalls, avgDurationSec }
+// ══════════════════════════════════════════════
+async function fetchCallsData() {
+  const cfg = getConfig();
+  showLoading('calls-loading', true);
+  showError('calls-error', false);
+
+  const from = document.getElementById('calls-from').value;
+  const to = document.getElementById('calls-to').value;
+
+  if (!cfg.ringbaAccount || !cfg.ringbaKey) {
+    showLoading('calls-loading', false);
+    return;
+  }
+
+  try {
+    const proxyUrl = (cfg.proxyUrl || '') + '/api/calls';
+    const res = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-ringba-account': cfg.ringbaAccount,
+        'x-ringba-key': cfg.ringbaKey,
+      },
+      body: JSON.stringify({ dateFrom: from, dateTo: to })
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderCallsData(data);
+  } catch(err) {
+    showError('calls-error', true, `Call tracking API error: ${err.message}`);
+    console.error('Calls fetch error:', err);
+  } finally {
+    showLoading('calls-loading', false);
+  }
+}
+
+function renderCallsData(data) {
+  const total = data.totalCalls ?? null;
+  const connected = data.connectedCalls ?? null;
+  const avgSec = data.avgDurationSec ?? null;
+
+  setEl('calls-total', total !== null ? String(total) : '--');
+  setEl('calls-connected', connected !== null ? String(connected) : '--');
+
+  const rate = (total && connected) ? (connected / total * 100).toFixed(1) : null;
+  setEl('calls-connect-rate', rate !== null ? `${rate}% connect rate` : '--% connect rate');
+
+  if (avgSec !== null) {
+    const m = Math.floor(avgSec / 60);
+    const s = String(avgSec % 60).padStart(2,'0');
+    setEl('calls-duration', `${m}:${s}`);
+  }
+
+  // Cost per call uses ad spend
+  const spendEl = document.getElementById('ads-spend');
+  const spendText = spendEl ? spendEl.textContent.replace(/[$,k]/g,'') : null;
+  if (spendText && total && !isNaN(parseFloat(spendText))) {
+    const spend = spendText.includes('k') ? parseFloat(spendText)*1000 : parseFloat(spendText);
+    setEl('calls-cost-per', fmtBig$(spend / total));
+  }
+}
+
+// ══════════════════════════════════════════════
+//  GOOGLE SHEETS API
+//  Public sheets: direct API call works (no proxy needed)
+//  Private sheets: need OAuth / service account via proxy
+//
+//  Expected sheet columns (row 1 = headers):
+//  Name | Phone | Campaign | State | Type | Premium | Date | Time
+// ══════════════════════════════════════════════
+async function fetchSalesData() {
+  const cfg = getConfig();
+  showLoading('sales-loading', true);
+  showError('sales-error', false);
+
+  const from = document.getElementById('sales-from').value;
+  const to = document.getElementById('sales-to').value;
+
+  if (!cfg.sheetsId || !cfg.sheetsKey) {
+    showLoading('sales-loading', false);
+    return;
+  }
+
+  try {
+    const tab = encodeURIComponent(cfg.sheetsTab || 'Sales');
+    // Fetch all rows — we filter by date client-side
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetsId}/values/${tab}?key=${cfg.sheetsKey}`;
+    const res = await fetch(url);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error?.message || `HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    const rows = data.values || [];
+
+    if (rows.length < 2) {
+      renderSalesData([], from, to);
+      return;
+    }
+
+    // Parse headers to find column indices (case-insensitive)
+    const headers = rows[0].map(h => h.toLowerCase().trim());
+    const col = (name) => headers.findIndex(h => h.includes(name));
+
+    const colName = col('name');
+    const colPhone = col('phone');
+    const colCampaign = col('campaign');
+    const colState = col('state');
+    const colType = col('type');
+    const colPremium = col('premium');
+    const colDate = col('date');
+    const colTime = col('time');
+
+    // Parse rows
+    const deals = rows.slice(1).map(row => ({
+      name: row[colName] || '',
+      phone: row[colPhone] || '',
+      campaign: (row[colCampaign] || '').toUpperCase(),
+      state: row[colState] || '',
+      type: (row[colType] || '').toUpperCase(),
+      premium: parseFloat((row[colPremium] || '0').replace(/[$,]/g,'')) || 0,
+      date: row[colDate] || '',
+      time: row[colTime] || '',
+    })).filter(d => d.name); // skip blank rows
+
+    // Filter by date range
+    const filtered = deals.filter(d => {
+      if (!d.date) return true; // include if no date
+      return d.date >= from && d.date <= to;
+    });
+
+    renderSalesData(filtered, from, to);
+
+    // Also get "this month" count for subtitle
+    const monthFiltered = deals.filter(d => !d.date || d.date >= monthStart());
+    setEl('sales-month-sub', `${monthFiltered.length} total this month`);
+
+  } catch(err) {
+    showError('sales-error', true, `Google Sheets error: ${err.message}`);
+    console.error('Sheets fetch error:', err);
+  } finally {
+    showLoading('sales-loading', false);
+  }
+}
+
+function renderSalesData(deals, from, to) {
+  const total = deals.length;
+  const revenue = deals.reduce((s, d) => s + d.premium, 0);
+
+  setEl('sales-deals', String(total));
+  setEl('sales-deals-sub', `${total} deals · via Sheets`);
+  setEl('sales-revenue', fmtBig$(revenue));
+
+  setEl('sum-total', String(total));
+  setEl('sum-premium', fmtBig$(revenue));
+
+  const sap = deals.filter(d => d.campaign.includes('SAPPHIRE')).length;
+  const dia = deals.filter(d => d.campaign.includes('DIAMOND')).length;
+  const rub = deals.filter(d => d.campaign.includes('RUBY')).length;
+  setEl('sum-campaign-split', `${sap} / ${dia} / ${rub}`);
+
+  const health = deals.filter(d => d.type.includes('HEALTH')).length;
+  const addon = deals.filter(d => d.type.includes('ADD') || d.type.includes('ADDON')).length;
+  setEl('sum-type-split', `${health} / ${addon}`);
+
+  // Update campaign cards with sales data
+  const campaigns = { SAPPHIRE: sap, DIAMOND: dia, RUBY: rub };
+  const premiums = {
+    SAPPHIRE: deals.filter(d => d.campaign.includes('SAPPHIRE')).reduce((s,d)=>s+d.premium,0),
+    DIAMOND: deals.filter(d => d.campaign.includes('DIAMOND')).reduce((s,d)=>s+d.premium,0),
+    RUBY: deals.filter(d => d.campaign.includes('RUBY')).reduce((s,d)=>s+d.premium,0),
+  };
+
+  ['sap','dia','rub'].forEach((k, i) => {
+    const cname = ['SAPPHIRE','DIAMOND','RUBY'][i];
+    setEl(`camp-${k}-sales`, String(campaigns[cname]));
+    setEl(`camp-${k}-premium`, fmtBig$(premiums[cname]));
+  });
+
+  // Render table
+  const tbody = document.getElementById('deals-tbody');
+  if (deals.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;font-family:var(--font-mono);font-size:11px;">No deals found for this date range</td></tr>`;
+    return;
+  }
+
+  // Sort newest first
+  const sorted = [...deals].sort((a,b) => {
+    const da = a.date + a.time, db = b.date + b.time;
+    return db.localeCompare(da);
+  });
+
+  tbody.innerHTML = sorted.map(d => {
+    const campClass = d.campaign.toLowerCase().includes('ruby') ? 'ruby'
+      : d.campaign.toLowerCase().includes('sapphire') ? 'sapphire'
+      : d.campaign.toLowerCase().includes('diamond') ? 'diamond' : '';
+    const typeClass = d.type.toLowerCase().includes('health') ? 'health'
+      : d.type.toLowerCase().includes('auto') ? 'auto' : 'health';
+    return `
+      <tr>
+        <td>${d.name}</td>
+        <td class="muted-val">${d.phone}</td>
+        <td><span class="badge ${campClass}">${d.campaign || '--'}</span></td>
+        <td class="muted-val">${d.state}</td>
+        <td><span class="badge ${typeClass}">${d.type || '--'}</span></td>
+        <td class="premium-val">${fmtBig$(d.premium)}</td>
+        <td class="muted-val">${d.date}</td>
+        <td class="muted-val">${d.time}</td>
+      </tr>
+    `;
+  }).join('');
+
+  setEl('kpi-premium', fmt$(revenue));
+  updateKpis();
+}
+
+// ══════════════════════════════════════════════
+//  KPI CALCULATIONS
+// ══════════════════════════════════════════════
+function updateKpis() {
+  // Pull from rendered values
+  const spendText = document.getElementById('ads-spend')?.textContent || '';
+  const premiumText = document.getElementById('sales-revenue')?.textContent || '';
+  const salesText = document.getElementById('sales-deals')?.textContent || '';
+
+  const spend = parseFloat(spendText.replace(/[$,k]/g,'').trim()) || null;
+  const premium = parseFloat(premiumText.replace(/[$,]/g,'').trim()) || null;
+  const sales = parseInt(salesText) || null;
+
+  if (spend && premium) {
+    const ptc = premium / spend;
+    setEl('kpi-ptc', ptc.toFixed(2));
+    setEl('ptc-number', ptc.toFixed(2));
+
+    // Color and status
+    let color, status;
+    if (ptc >= 1.0) { color = 'var(--green)'; status = 'COOKING 🔥'; }
+    else if (ptc >= 0.80) { color = 'var(--yellow)'; status = 'ON TARGET'; }
+    else if (ptc >= 0.70) { color = 'var(--yellow)'; status = 'AT MIN TARGET'; }
+    else { color = 'var(--red)'; status = 'BELOW TARGET'; }
+
+    document.getElementById('ptc-number').style.color = color;
+    document.getElementById('ptc-status').style.color = color;
+    setEl('ptc-status', status);
+
+    // Bar: 0–1.5 range
+    const pct = Math.min((ptc / 1.5) * 100, 100);
+    document.getElementById('ptc-bar').style.width = pct + '%';
+    document.getElementById('ptc-bar').style.background = color;
+
+    document.getElementById('kpi-ptc').style.color = color;
+  }
+
+  if (spend && sales) {
+    const cpa = spend / sales;
+    setEl('kpi-cpa', fmtBig$(cpa));
+    // Update campaign CPAs
+    ['sap','dia','rub'].forEach((k, i) => {
+      const campSales = parseInt(document.getElementById(`camp-${k}-sales`)?.textContent || '0') || 0;
+      const campSpend = parseFloat((document.getElementById(`camp-${k}-spend`)?.textContent || '0').replace(/[$,]/g,'')) || 0;
+      if (campSales > 0 && campSpend > 0) {
+        setEl(`camp-${k}-cpa`, fmtBig$(campSpend / campSales));
+      }
+    });
+  }
+
+  if (premium && sales) {
+    const pps = premium / sales;
+    setEl('kpi-pps', fmtBig$(pps));
+    // Campaign PPS/PTC
+    ['sap','dia','rub'].forEach(k => {
+      const campSales = parseInt(document.getElementById(`camp-${k}-sales`)?.textContent || '0') || 0;
+      const campPrem = parseFloat((document.getElementById(`camp-${k}-premium`)?.textContent || '0').replace(/[$,]/g,'')) || 0;
+      const campSpend = parseFloat((document.getElementById(`camp-${k}-spend`)?.textContent || '0').replace(/[$,]/g,'')) || 0;
+      if (campSales > 0 && campPrem > 0) {
+        setEl(`camp-${k}-pps`, fmtBig$(campPrem / campSales));
+      }
+      if (campSpend > 0 && campPrem > 0) {
+        setEl(`camp-${k}-ptc`, (campPrem / campSpend).toFixed(2));
+      }
+    });
+  }
+}
+
+// ══════════════════════════════════════════════
+//  REFRESH ALL
+// ══════════════════════════════════════════════
+async function refreshAll() {
+  await Promise.all([
+    fetchAdsData(),
+    fetchCallsData(),
+    fetchSalesData(),
+  ]);
+}
+
+// ══════════════════════════════════════════════
+//  AUTO-REFRESH every 90 seconds
+// ══════════════════════════════════════════════
+let refreshTimer;
+
+function startAutoRefresh() {
+  clearInterval(refreshTimer);
+  refreshTimer = setInterval(refreshAll, 90_000);
+}
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  loadConfig();
+  initDates();
+  updateClock();
+  setInterval(updateClock, 1000);
+  refreshAll();
+  startAutoRefresh();
+});
+</script>
+</body>
+</html>
