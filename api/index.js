@@ -173,19 +173,19 @@ app.post('/api/calls', async (req, res) => {
 
     const data = await ringbaRes.json();
 
-    // Ringba returns data under callLog.data[]
+    // Ringba returns data under report.records[]
     console.log('Ringba raw response:', JSON.stringify(data).slice(0, 500));
-    const calls = data?.callLog?.data || data?.calls || data?.data || [];
+    const calls = data?.report?.records || data?.callLog?.data || data?.calls || data?.data || [];
 
-    const totalCalls = data?.callLog?.totalCount ?? calls.length;
+    const totalCalls = calls.length;
 
     const connectedCalls = calls.filter(c => {
-      const dur = c.callLengthInSeconds || c.duration || c.callDuration || 0;
+      const dur = c.callLengthInSeconds || c.lengthInSeconds || c.duration || c.callDuration || c.talkTime || 0;
       return dur > 0;
     }).length;
 
     const durations = calls
-      .map(c => c.callLengthInSeconds || c.duration || c.callDuration || 0)
+      .map(c => c.callLengthInSeconds || c.lengthInSeconds || c.duration || c.callDuration || c.talkTime || 0)
       .filter(d => d > 0);
 
     const avgDurationSec = durations.length > 0
