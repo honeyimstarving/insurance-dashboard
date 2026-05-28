@@ -174,6 +174,7 @@ app.post('/api/calls', async (req, res) => {
     const data = await ringbaRes.json();
 
     // Ringba returns data under callLog.data[]
+    console.log('Ringba raw response:', JSON.stringify(data).slice(0, 500));
     const calls = data?.callLog?.data || data?.calls || data?.data || [];
 
     const totalCalls = data?.callLog?.totalCount ?? calls.length;
