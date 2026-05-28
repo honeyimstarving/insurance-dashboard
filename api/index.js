@@ -191,10 +191,33 @@ app.post('/api/calls', async (req, res) => {
       ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
       : 0;
 
+    // Target-to-campaign mapping
+    const TARGET_MAP = {
+      '+13412199153': 'cm',
+      '+12832001597': 'ghr',
+      '+13262063499': 'pmax',
+    };
+
+    const campCalls = { cm: 0, ghr: 0, pmax: 0 };
+    const campConnected = { cm: 0, ghr: 0, pmax: 0 };
+
+    calls.forEach(c => {
+      const targetNum = c.targetNumber || c.dialedNumber || c.toNumber || c.destination || '';
+      const normalized = targetNum.startsWith('+') ? targetNum : '+1' + targetNum;
+      const campKey = TARGET_MAP[normalized] || null;
+      if (campKey) {
+        campCalls[campKey]++;
+        const dur = c.callLengthInSeconds || c.duration || c.callDuration || 0;
+        if (dur > 0) campConnected[campKey]++;
+      }
+    });
+
     res.json({
       totalCalls,
       connectedCalls,
       avgDurationSec,
+      campCalls,
+      campConnected,
       dateFrom,
       dateTo,
     });
