@@ -87,7 +87,7 @@ app.post('/api/calls', async (req, res) => {
         // Check every possible converted field
         const converted = c.isConverted === true ||
                          c.converted === true ||
-                         c.hasConversion === true ||
+                         c.hasConverted === true ||
                          c.convertedCall === true ||
                          c.isConversion === true ||
                          (c.conversionCount && c.conversionCount > 0) ||
