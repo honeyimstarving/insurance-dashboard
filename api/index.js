@@ -1,10 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const fetch = (...args) => import('node-fetch').then(({default: f}) => f(...args));
-
 const app = express();
 app.use(express.json());
-
 app.use(cors({
   origin: process.env.ALLOWED_ORIGIN || '*',
   methods: ['GET', 'POST', 'OPTIONS'],
@@ -24,31 +22,47 @@ app.post('/api/calls', async (req, res) => {
       return res.status(400).json({ error: 'Missing Ringba credentials' });
     }
 
-    const ringbaRes = await fetch(
-      `https://api.ringba.com/v2/${accountId}/calllogs`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Token ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          reportStart: `${dateFrom}T00:00:00Z`,
-          reportEnd:   `${dateTo}T23:59:59Z`,
-          size: 1000,
-          offset: 0,
-        })
-      }
-    );
+    // Paginate through all results
+    let allCalls = [];
+    let offset = 0;
+    const pageSize = 1000;
 
-    if (!ringbaRes.ok) {
-      const errText = await ringbaRes.text();
-      console.error('Ringba API error:', errText);
-      return res.status(ringbaRes.status).json({ error: errText });
+    while (true) {
+      const ringbaRes = await fetch(
+        `https://api.ringba.com/v2/${accountId}/calllogs`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Token ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            reportStart: `${dateFrom}T00:00:00Z`,
+            reportEnd:   `${dateTo}T23:59:59Z`,
+            size: pageSize,
+            offset: offset,
+          })
+        }
+      );
+
+      if (!ringbaRes.ok) {
+        const errText = await ringbaRes.text();
+        console.error('Ringba API error:', errText);
+        return res.status(ringbaRes.status).json({ error: errText });
+      }
+
+      const data = await ringbaRes.json();
+      const page = data?.report?.records || data?.callLog?.data || data?.calls || data?.data || [];
+
+      console.log(`Fetched page offset=${offset}, got ${page.length} records`);
+      allCalls = allCalls.concat(page);
+
+      // Stop if we got fewer than a full page
+      if (page.length < pageSize) break;
+      offset += pageSize;
     }
 
-    const data = await ringbaRes.json();
-    const calls = data?.report?.records || data?.callLog?.data || data?.calls || data?.data || [];
+    const calls = allCalls;
 
     // Log first call to see all fields
     if (calls.length > 0) {
@@ -57,18 +71,14 @@ app.post('/api/calls', async (req, res) => {
     }
 
     const totalCalls = calls.length;
-
     const durations = calls
       .map(c => c.callLengthInSeconds || c.lengthInSeconds || c.duration || c.callDuration || c.talkTime || 0)
       .filter(d => d > 0);
-
     const connectedCalls = durations.length;
-
     const avgDurationSec = durations.length > 0
       ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
       : 0;
 
-    // Target-to-campaign mapping
     const TARGET_MAP = {
       '+13412199153': 'cm',
       '+12832001597': 'ghr',
@@ -82,9 +92,9 @@ app.post('/api/calls', async (req, res) => {
       const targetNum = c.targetNumber || c.dialedNumber || c.inboundPhoneNumber || c.toNumber || c.destination || c.number || '';
       const normalized = targetNum.startsWith('+') ? targetNum : '+1' + targetNum;
       const campKey = TARGET_MAP[normalized] || null;
+
       if (campKey) {
         campCalls[campKey]++;
-        // Check every possible converted field
         const converted = c.isConverted === true ||
                          c.converted === true ||
                          c.hasConverted === true ||
@@ -96,6 +106,7 @@ app.post('/api/calls', async (req, res) => {
       }
     });
 
+    console.log('Total calls fetched:', calls.length);
     console.log('campCalls:', JSON.stringify(campCalls));
     console.log('campConverted:', JSON.stringify(campConverted));
 
