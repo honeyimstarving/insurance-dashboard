@@ -102,10 +102,26 @@ app.post('/api/calls', async (req, res) => {
       let campKey = TARGET_MAP[normalized] || null;
 
       if (campKey === SHARED_NUMBER_KEY) {
-        // Try a range of possible Ringba date/time fields to find the call's date.
+        // Ringba's callDt field is a millisecond Unix epoch timestamp (confirmed via
+        // CALL SAMPLE logging), NOT an ISO date string — so it needs proper Date parsing,
+        // not a naive string slice. Convert to Eastern Time calendar date for the
+        // cutover comparison, consistent with how the rest of the dashboard handles dates.
         const callDateRaw = c.callDt || c.callDate || c.startTimeStamp || c.callStartTime ||
                              c.timestamp || c.date || c.eventTimestamp || c.inboundCallDt || '';
-        const callDateStr = callDateRaw ? String(callDateRaw).slice(0, 10) : '';
+
+        let callDateStr = '';
+        if (callDateRaw) {
+          const asNum = Number(callDateRaw);
+          if (!isNaN(asNum) && asNum > 0) {
+            const d = new Date(asNum);
+            if (!isNaN(d.getTime())) {
+              callDateStr = d.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+            }
+          } else {
+            // Fallback in case some record has an actual ISO-ish string instead
+            callDateStr = String(callDateRaw).slice(0, 10);
+          }
+        }
 
         if (callDateStr) {
           campKey = callDateStr >= SAPPHIRE_CUTOVER ? 'sapphire' : 'ghr';
