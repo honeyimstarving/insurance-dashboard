@@ -79,19 +79,43 @@ app.post('/api/calls', async (req, res) => {
       ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
       : 0;
 
+    // Sapphire took over Ruby's old tracking number (+12832001597) on 2026-06-18.
+    // That number is split here by call date: calls BEFORE the cutover are
+    // attributed to General Health Ruby ("ghr"), calls ON/AFTER are Sapphire.
+    const SAPPHIRE_CUTOVER = '2026-06-18';
+    const SHARED_NUMBER_KEY = 'ghr_sapphire_shared';
+
     const TARGET_MAP = {
       '+13412199153': 'cm',
-      '+12832001597': 'ghr',
+      '+12832001597': SHARED_NUMBER_KEY,
       '+13262063499': 'pmax',
     };
 
-    const campCalls = { cm: 0, ghr: 0, pmax: 0 };
-    const campConverted = { cm: 0, ghr: 0, pmax: 0 };
+    const campCalls = { cm: 0, ghr: 0, sapphire: 0, pmax: 0 };
+    const campConverted = { cm: 0, ghr: 0, sapphire: 0, pmax: 0 };
+
+    let unresolvedSharedNumberCalls = 0;
 
     calls.forEach(c => {
       const targetNum = c.targetNumber || c.dialedNumber || c.inboundPhoneNumber || c.toNumber || c.destination || c.number || '';
       const normalized = targetNum.startsWith('+') ? targetNum : '+1' + targetNum;
-      const campKey = TARGET_MAP[normalized] || null;
+      let campKey = TARGET_MAP[normalized] || null;
+
+      if (campKey === SHARED_NUMBER_KEY) {
+        // Try a range of possible Ringba date/time fields to find the call's date.
+        const callDateRaw = c.callDt || c.callDate || c.startTimeStamp || c.callStartTime ||
+                             c.timestamp || c.date || c.eventTimestamp || c.inboundCallDt || '';
+        const callDateStr = callDateRaw ? String(callDateRaw).slice(0, 10) : '';
+
+        if (callDateStr) {
+          campKey = callDateStr >= SAPPHIRE_CUTOVER ? 'sapphire' : 'ghr';
+        } else {
+          // Couldn't find a usable date field — log it so we can fix the field name,
+          // and default to ghr (the older/safer bucket) rather than silently dropping it.
+          unresolvedSharedNumberCalls++;
+          campKey = 'ghr';
+        }
+      }
 
       if (campKey) {
         campCalls[campKey]++;
@@ -105,6 +129,10 @@ app.post('/api/calls', async (req, res) => {
         if (converted) campConverted[campKey]++;
       }
     });
+
+    if (unresolvedSharedNumberCalls > 0) {
+      console.warn(`WARNING: ${unresolvedSharedNumberCalls} call(s) on the shared Ruby/Sapphire number had no recognizable date field — check CALL SAMPLE above for the correct field name and update callDateRaw in index.js.`);
+    }
 
     console.log('Total calls fetched:', calls.length);
     console.log('campCalls:', JSON.stringify(campCalls));
